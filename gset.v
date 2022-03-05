@@ -46,7 +46,7 @@ Section InTheSameOrbit.
 
 Variable D : Set.
 Variable act : D -> G -> D.
-Definition DG := mkGset D act.
+Let DG := mkGset D act.
 Hypothesis D_is_Gset : IsGset DG.
 
 Lemma in_the_same_orbit :
@@ -95,8 +95,8 @@ Definition IsOneToOne {A B : Set} (f : A -> B) :=
 Variables A B : Set.
 Variable Aact : A -> G -> A.
 Variable Bact : B -> G -> B.
-Definition AG := mkGset A Aact.
-Definition BG := mkGset B Bact.
+Let AG := mkGset A Aact.
+Let BG := mkGset B Bact.
 Hypothesis A_is_Gset : IsGset AG.
 Hypothesis B_is_Gset : IsGset BG.
 
