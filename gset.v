@@ -173,3 +173,119 @@ Qed.
 
 End InverseFunctions.
 End EquivariantFunctions.
+
+(* Equivariant subsets *)
+
+Require Import Ensembles.
+
+Section EquivariantSubsets.
+
+Variable X : Set.
+Variable Xact : X -> G -> X.
+Let XG := mkGset X Xact.
+Hypothesis X_is_Gset : IsGset XG.
+Let Xd := domainG XG.
+
+Variable A : Set.
+Variable Aact : A -> G -> A.
+Let AG := mkGset A Aact.
+Hypothesis A_is_Gset : IsGset AG.
+Let Ad := domainG AG.
+
+Let XAact : (Xd * Ad) -> G -> (Xd * Ad) :=
+  fun xa pi => (action (fst xa) pi, action (snd xa) pi).
+Let XAG := mkGset (X * A) XAact.
+Let XAd := domainG XAG.
+
+Section PairOfGsets.
+
+Local Lemma XA_unit :
+  forall xa : XAd, action xa unit = xa.
+Proof.
+  intros xa.
+  apply injective_projections.
+  - apply (Gset_unit _ _ _ X_is_Gset).
+  - apply (Gset_unit _ _ _ A_is_Gset).
+Qed.
+
+Local Lemma XA_comp :
+  forall (xa : XAd) (pi sigma : G),
+    action xa (comp pi sigma) = action (action xa pi) sigma.
+Proof.
+  intros xa pi sigma.
+  apply injective_projections.
+  - apply (Gset_comp _ _ _ X_is_Gset).
+  - apply (Gset_comp _ _ _ A_is_Gset).
+Qed.
+
+Lemma XA_is_Gset : IsGset XAG.
+Proof.
+  unfold IsGset.
+  apply {| Gset_unit := XA_unit; Gset_comp := XA_comp; |}.
+Qed.
+
+End PairOfGsets.
+
+Definition IsEquivariantSubset {U : Gset} (Y : Ensemble (domainG U)) :=
+  forall y pi, In _ Y y -> In _ Y (action y pi).
+
+Variable Y : Ensemble Xd.
+Variable B : Ensemble Ad.
+Hypothesis Y_is_equivariant : IsEquivariantSubset Y.
+Hypothesis B_is_equivariant : IsEquivariantSubset B.
+
+Inductive Product {A B : Type} (S : Ensemble A) (T : Ensemble B)
+  : Ensemble (A * B) :=
+  | mkProduct : forall (a : A) (b : B),
+    In _ S a -> In _ T b -> In _ (Product S T) (a, b).
+
+Lemma YB_is_equivariant :
+  @IsEquivariantSubset XAG (Product Y B).
+Proof.
+  unfold IsEquivariantSubset.
+  intros yb pi Hin.
+  inversion Hin as [y b Hy Hb EQyb].
+  simpl.
+  apply mkProduct; auto.
+Qed.
+
+End EquivariantSubsets.
+
+(* Supports *)
+
+Section Support.
+
+Variable D : Set.
+Variable Dact : D -> G -> D.
+Let DG := mkGset D Dact.
+Hypothesis D_is_Gset : IsGset DG.
+Let Dd := domainG DG.
+
+Variable X : Set.
+Variable Xact : X -> G -> X.
+Let XG := mkGset X Xact.
+Hypothesis X_is_Gset : IsGset XG.
+Let Xd := domainG XG.
+
+Definition IsSupport (x : Xd) (C : Ensemble Dd) :=
+  forall pi : G,
+  (forall c : Dd, In _ C c -> action c pi = c) ->
+  action x pi = x.
+
+Lemma larger_support :
+  forall (x : Xd) (C C' : Ensemble Dd),
+  IsSupport x C -> Included _ C C' -> IsSupport x C'.
+Proof.
+  intros x C C' HC HC'.
+  unfold IsSupport.
+  unfold IsSupport in HC.
+  intros pi H'.
+  unfold Included in HC'.
+  apply (HC pi).
+  intros c Hin.
+  apply (H' c).
+  apply (HC' c).
+  assumption.
+Qed.
+
+End Support.
