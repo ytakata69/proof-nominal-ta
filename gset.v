@@ -41,6 +41,7 @@ Definition Gset := GroupSet GMag G_is_group.
 Definition mkGset := mkGroupSet GMag G_is_group.
 Definition IsGset := IsGroupSet GMag G_is_group.
 Definition domainG := @domain GMag G_is_group.
+Definition actionG := @action GMag G_is_group.
 
 Section InTheSameOrbit.
 
