@@ -25,7 +25,7 @@ Axiom G_is_group : IsGroup GMag.
 (* G-set *)
 
 Class GroupSet (GM : Magma) `(IsGroup GM) := mkGroupSet {
-  domain : Set;
+  domain : Type;
   action : domain -> carrier -> domain;
   orbit x y := exists pi : carrier, action x pi = y;
 }.
@@ -88,9 +88,9 @@ Section EquivariantFunctions.
 Definition IsEquivariant {A B : Gset} (f : domainG A -> domainG B) :=
   forall (x : domainG A) (pi : G),
     f (action x pi) = action (f x) pi.
-Definition IsOnto {A B : Set} (f : A -> B) :=
+Definition IsOnto {A B : Type} (f : A -> B) :=
   forall z, exists x, f x = z.
-Definition IsOneToOne {A B : Set} (f : A -> B) :=
+Definition IsOneToOne {A B : Type} (f : A -> B) :=
   forall x y, f x = f y -> x = y.
 
 Variables A B : Set.
