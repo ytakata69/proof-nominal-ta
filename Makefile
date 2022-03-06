@@ -1,10 +1,9 @@
-targets = gset.vo
-
 .PHONY: clean all default
 %.vo: %.v
 	coqc $<
 
-all: $(targets)
+all: tree.vo
+tree.vo: gset.vo
 
 clean:
 	$(RM) *.vo *.vo[ks] *.glob .*.aux *~
