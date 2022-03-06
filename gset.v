@@ -174,30 +174,90 @@ Qed.
 End InverseFunctions.
 End EquivariantFunctions.
 
-(* Equivariant subsets *)
+(* Compound G-sets *)
 
 Require Import Ensembles.
 
-Section EquivariantSubsets.
+Section EnsembleIsGset.
 
-Variable X : Set.
-Variable Xact : X -> G -> X.
-Let XG := mkGset X Xact.
-Hypothesis X_is_Gset : IsGset XG.
-Let Xd := domainG XG.
-
-Variable A : Set.
+Variable A : Type.
 Variable Aact : A -> G -> A.
 Let AG := mkGset A Aact.
 Hypothesis A_is_Gset : IsGset AG.
 Let Ad := domainG AG.
 
-Let XAact : (Xd * Ad) -> G -> (Xd * Ad) :=
-  fun xa pi => (action (fst xa) pi, action (snd xa) pi).
-Let XAG := mkGset (X * A) XAact.
-Let XAd := domainG XAG.
+Let EnAd := Ensemble Ad.
+Inductive ensembleAct (S : EnAd) (pi : G) : EnAd :=
+| mkEnsembleAct :
+  forall a : Ad,
+  In _ S a -> In _ (ensembleAct S pi) (action a pi).
 
-Section PairOfGsets.
+Let EnsembleA := mkGset EnAd ensembleAct.
+Let EAd := domainG EnsembleA.
+
+Local Lemma Ensemble_unit :
+  forall S : EAd, action S unit = S.
+Proof.
+  intros S.
+  apply Extensionality_Ensembles.
+  split; unfold Included.
+  - (* Included _ (ensembleAct S e) S *)
+  intros a Ha.
+  inversion Ha as [a' Ha' EQa'].
+  now rewrite (Gset_unit _ _ _ A_is_Gset).
+  - (* Included _ S (ensembleAct S e) *)
+  intros a Ha.
+  rewrite <- (Gset_unit _ _ _ A_is_Gset).
+  now apply mkEnsembleAct.
+Qed.
+
+Local Lemma Ensemble_comp :
+  forall (S : EAd) (pi sigma : G),
+    action S (comp pi sigma) = action (action S pi) sigma.
+Proof.
+  intros S pi sigma.
+  apply Extensionality_Ensembles.
+  split; unfold Included; simpl.
+  - (* Included _ (action S (comp pi sigma)) (action (action S pi) sigma) *)
+  intros a Ha.
+  inversion Ha as [a' Ha' EQa'].
+  rewrite (Gset_comp _ _ _ A_is_Gset).
+  apply mkEnsembleAct.
+  now apply mkEnsembleAct.
+  - (* Included _ (action (action S pi) sigma) (action S (comp pi sigma)) *)
+  intros a Ha.
+  inversion Ha as [a' Ha' EQa'].
+  inversion Ha' as [a'' Ha'' EQa''].
+  rewrite <- (Gset_comp _ _ _ A_is_Gset).
+  now apply mkEnsembleAct.
+Qed.
+
+Lemma Ensemble_is_Gset : IsGset EnsembleA.
+Proof.
+  unfold IsGset.
+  apply {| Gset_unit := Ensemble_unit; Gset_comp := Ensemble_comp; |}.
+Qed.
+
+End EnsembleIsGset.
+
+Section GProductIsGsets.
+
+Definition GProduct (A B : Gset) :=
+  mkGset (domainG A * domainG B)
+    (fun ab pi => (action (fst ab) pi, action (snd ab) pi)).
+
+Variable X : Set.
+Variable Xact : X -> G -> X.
+Let XG := mkGset X Xact.
+Hypothesis X_is_Gset : IsGset XG.
+
+Variable A : Set.
+Variable Aact : A -> G -> A.
+Let AG := mkGset A Aact.
+Hypothesis A_is_Gset : IsGset AG.
+
+Let XAG := GProduct XG AG.
+Let XAd := domainG XAG.
 
 Local Lemma XA_unit :
   forall xa : XAd, action xa unit = xa.
@@ -218,16 +278,32 @@ Proof.
   - apply (Gset_comp _ _ _ A_is_Gset).
 Qed.
 
-Lemma XA_is_Gset : IsGset XAG.
+Lemma GProduct_is_Gset : IsGset XAG.
 Proof.
   unfold IsGset.
   apply {| Gset_unit := XA_unit; Gset_comp := XA_comp; |}.
 Qed.
 
-End PairOfGsets.
+End GProductIsGsets.
+
+(* Equivariant subsets *)
+
+Section EquivariantSubsets.
 
 Definition IsEquivariantSubset {U : Gset} (Y : Ensemble (domainG U)) :=
   forall y pi, In _ Y y -> In _ Y (action y pi).
+
+Variable X : Set.
+Variable Xact : X -> G -> X.
+Let XG := mkGset X Xact.
+Hypothesis X_is_Gset : IsGset XG.
+Let Xd := domainG XG.
+
+Variable A : Set.
+Variable Aact : A -> G -> A.
+Let AG := mkGset A Aact.
+Hypothesis A_is_Gset : IsGset AG.
+Let Ad := domainG AG.
 
 Variable Y : Ensemble Xd.
 Variable B : Ensemble Ad.
@@ -238,6 +314,8 @@ Inductive Product {A B : Type} (S : Ensemble A) (T : Ensemble B)
   : Ensemble (A * B) :=
   | mkProduct : forall (a : A) (b : B),
     In _ S a -> In _ T b -> In _ (Product S T) (a, b).
+
+Let XAG := GProduct XG AG.
 
 Lemma YB_is_equivariant :
   @IsEquivariantSubset XAG (Product Y B).
