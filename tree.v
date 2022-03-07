@@ -16,13 +16,11 @@ Fixpoint treeAct {A : Gset} (t : Tree A) (pi : G)
 
 Section TreeIsGset.
 
-Variable A : Set.
-Variable Aact : A -> G -> A.
-Let AG := mkGset A Aact.
-Hypothesis A_is_Gset : IsGset AG.
-Let Ad := domainG AG.
+Variable A : Gset.
+Hypothesis A_is_Gset : IsGset A.
+Let Ad := domainG A.
 
-Let TreeA := mkGset (Tree AG) treeAct.
+Let TreeA := mkGset (Tree A) treeAct.
 Let TAd := domainG TreeA.
 
 Local Lemma Tree_unit :
@@ -66,13 +64,11 @@ Require Import Ensembles.
 
 Section NextIsEquivariant.
 
-Variable A : Set.
-Variable Aact : A -> G -> A.
-Let AG := mkGset A Aact.
-Hypothesis A_is_Gset : IsGset AG.
-Let Ad := domainG AG.
+Variable A : Gset.
+Hypothesis A_is_Gset : IsGset A.
+Let Ad := domainG A.
 
-Let TreeA := mkGset (Tree AG) treeAct.
+Let TreeA := mkGset (Tree A) treeAct.
 Let TAd := domainG TreeA.
 
 Inductive Next (S : Ensemble TAd)
@@ -101,20 +97,18 @@ End NextIsEquivariant.
 
 Section RowIsEquivariant.
 
-Variable A : Set.
-Variable Aact : A -> G -> A.
-Let AG := mkGset A Aact.
-Hypothesis A_is_Gset : IsGset AG.
-Let Ad := domainG AG.
+Variable A : Gset.
+Hypothesis A_is_Gset : IsGset A.
+Let Ad := domainG A.
 
-Let TreeA := mkGset (Tree AG) treeAct.
+Let TreeA := mkGset (Tree A) treeAct.
 Let TAd := domainG TreeA.
 Let TAact := actionG TreeA.
 
 Variable L : Ensemble (domainG (GProduct TreeA TreeA)).
 Hypothesis L_is_equivariant : IsEquivariantSubset L.
 
-Let ETA := mkGset (Ensemble TAd) (ensembleAct TAd TAact).
+Let ETA := mkGset (Ensemble TAd) (ensembleAct TreeA).
 Let ETAd := domainG ETA.
 Inductive row (s : TAd) : ETAd :=
 | mkRow : forall a : TAd,
@@ -126,7 +120,7 @@ Proof.
   unfold IsEquivariant.
   intros t pi.
   destruct (group_inverse _ G_is_group pi) as [pinv [Hpinv1 Hpinv2]].
-  assert (TA_is_Gset := Tree_is_Gset _ _ A_is_Gset).
+  assert (TA_is_Gset := Tree_is_Gset _ A_is_Gset).
 
   apply Extensionality_Ensembles.
   split; unfold Included; simpl.

@@ -43,15 +43,35 @@ Definition IsGset := IsGroupSet GMag G_is_group.
 Definition domainG := @domain GMag G_is_group.
 Definition actionG := @action GMag G_is_group.
 
-Section InTheSameOrbit.
+Section GsetPrelude.
 
-Variable D : Set.
-Variable act : D -> G -> D.
-Let DG := mkGset D act.
-Hypothesis D_is_Gset : IsGset DG.
+Variable A : Gset.
+Hypothesis A_is_Gset : IsGset A.
+
+Lemma transpose_inverse :
+  forall pi pinv : G,
+    comp pinv pi = e -> comp pi pinv = e ->
+  forall x y : domainG A,
+    action x pinv = y <-> x = action y pi.
+Proof.
+  intros pi pinv Hinv1 Hinv2 x y.
+  split; intro H.
+  - (* -> *)
+  rewrite <- H.
+  rewrite <- (Gset_comp _ _ _ A_is_Gset).
+  simpl.
+  rewrite Hinv1.
+  now rewrite (Gset_unit _ _ _ A_is_Gset).
+  - (* <- *)
+  rewrite H.
+  rewrite <- (Gset_comp _ _ _ A_is_Gset).
+  simpl.
+  rewrite Hinv2.
+  now rewrite (Gset_unit _ _ _ A_is_Gset).
+Qed.
 
 Lemma in_the_same_orbit :
-  forall y1 y2 : domainG DG,
+  forall y1 y2 : domainG A,
     (exists x, orbit x y1 /\ orbit x y2) <-> orbit y1 y2.
 Proof.
   intros y1 y2.
@@ -64,22 +84,22 @@ Proof.
   rewrite<- H1.
   rewrite<- H2.
   exists (comp p1inv p2).
-  rewrite   (Gset_comp _ _ _ D_is_Gset).
-  rewrite<- (Gset_comp _ _ _ D_is_Gset _ _ p1inv).
+  rewrite   (Gset_comp _ _ _ A_is_Gset).
+  rewrite<- (Gset_comp _ _ _ A_is_Gset _ _ p1inv).
   rewrite Hp1iv.
-  rewrite   (Gset_unit _ _ _ D_is_Gset).
+  rewrite   (Gset_unit _ _ _ A_is_Gset).
   reflexivity.
   - (* <- *)
   intros H.
   exists y1.
   split.
   + exists unit.
-  rewrite (Gset_unit _ _ _ D_is_Gset).
+  rewrite (Gset_unit _ _ _ A_is_Gset).
   reflexivity.
   + assumption.
 Qed.
 
-End InTheSameOrbit.
+End GsetPrelude.
 
 (* Equivariant functions *)
 
@@ -93,15 +113,11 @@ Definition IsOnto {A B : Type} (f : A -> B) :=
 Definition IsOneToOne {A B : Type} (f : A -> B) :=
   forall x y, f x = f y -> x = y.
 
-Variables A B : Set.
-Variable Aact : A -> G -> A.
-Variable Bact : B -> G -> B.
-Let AG := mkGset A Aact.
-Let BG := mkGset B Bact.
-Hypothesis A_is_Gset : IsGset AG.
-Hypothesis B_is_Gset : IsGset BG.
+Variables A B : Gset.
+Hypothesis A_is_Gset : IsGset A.
+Hypothesis B_is_Gset : IsGset B.
 
-Variable f : domainG AG -> domainG BG.
+Variable f : domainG A -> domainG B.
 Hypothesis f_is_equivariant : IsEquivariant f.
 
 Lemma number_of_orbits_partial :
@@ -145,7 +161,7 @@ Section InverseFunctions.
 Hypothesis f_is_one_to_one : IsOneToOne f.
 Hypothesis f_is_onto : IsOnto f.
 
-Variable finv : domainG BG -> domainG AG.
+Variable finv : domainG B -> domainG A.
 Hypothesis finv_is_inverse :
   forall x, finv (f x) = x.
 
@@ -180,11 +196,9 @@ Require Import Ensembles.
 
 Section EnsembleIsGset.
 
-Variable A : Type.
-Variable Aact : A -> G -> A.
-Let AG := mkGset A Aact.
-Hypothesis A_is_Gset : IsGset AG.
-Let Ad := domainG AG.
+Variable A : Gset.
+Hypothesis A_is_Gset : IsGset A.
+Let Ad := domainG A.
 
 Let EnAd := Ensemble Ad.
 Inductive ensembleAct (S : EnAd) (pi : G) : EnAd :=
@@ -246,18 +260,12 @@ Definition GProduct (A B : Gset) :=
   mkGset (domainG A * domainG B)
     (fun ab pi => (action (fst ab) pi, action (snd ab) pi)).
 
-Variable X : Set.
-Variable Xact : X -> G -> X.
-Let XG := mkGset X Xact.
-Hypothesis X_is_Gset : IsGset XG.
+Variable X A : Gset.
+Hypothesis X_is_Gset : IsGset X.
+Hypothesis A_is_Gset : IsGset A.
 
-Variable A : Set.
-Variable Aact : A -> G -> A.
-Let AG := mkGset A Aact.
-Hypothesis A_is_Gset : IsGset AG.
-
-Let XAG := GProduct XG AG.
-Let XAd := domainG XAG.
+Let XA := GProduct X A.
+Let XAd := domainG XA.
 
 Local Lemma XA_unit :
   forall xa : XAd, action xa unit = xa.
@@ -278,7 +286,7 @@ Proof.
   - apply (Gset_comp _ _ _ A_is_Gset).
 Qed.
 
-Lemma GProduct_is_Gset : IsGset XAG.
+Lemma GProduct_is_Gset : IsGset XA.
 Proof.
   unfold IsGset.
   apply {| Gset_unit := XA_unit; Gset_comp := XA_comp; |}.
@@ -293,32 +301,26 @@ Section EquivariantSubsets.
 Definition IsEquivariantSubset {U : Gset} (Y : Ensemble (domainG U)) :=
   forall y pi, In _ Y y -> In _ Y (action y pi).
 
-Variable X : Set.
-Variable Xact : X -> G -> X.
-Let XG := mkGset X Xact.
-Hypothesis X_is_Gset : IsGset XG.
-Let Xd := domainG XG.
+Inductive Product {A B : Type} (S : Ensemble A) (T : Ensemble B)
+  : Ensemble (A * B) :=
+  | mkProduct : forall (a : A) (b : B),
+    In _ S a -> In _ T b -> In _ (Product S T) (a, b).
 
-Variable A : Set.
-Variable Aact : A -> G -> A.
-Let AG := mkGset A Aact.
-Hypothesis A_is_Gset : IsGset AG.
-Let Ad := domainG AG.
+Variable X A : Gset.
+Hypothesis X_is_Gset : IsGset X.
+Hypothesis A_is_Gset : IsGset A.
+Let Xd := domainG X.
+Let Ad := domainG A.
 
 Variable Y : Ensemble Xd.
 Variable B : Ensemble Ad.
 Hypothesis Y_is_equivariant : IsEquivariantSubset Y.
 Hypothesis B_is_equivariant : IsEquivariantSubset B.
 
-Inductive Product {A B : Type} (S : Ensemble A) (T : Ensemble B)
-  : Ensemble (A * B) :=
-  | mkProduct : forall (a : A) (b : B),
-    In _ S a -> In _ T b -> In _ (Product S T) (a, b).
-
-Let XAG := GProduct XG AG.
+Let XA := GProduct X A.
 
 Lemma YB_is_equivariant :
-  @IsEquivariantSubset XAG (Product Y B).
+  @IsEquivariantSubset XA (Product Y B).
 Proof.
   unfold IsEquivariantSubset.
   intros yb pi Hin.
@@ -333,17 +335,11 @@ End EquivariantSubsets.
 
 Section Support.
 
-Variable D : Set.
-Variable Dact : D -> G -> D.
-Let DG := mkGset D Dact.
-Hypothesis D_is_Gset : IsGset DG.
-Let Dd := domainG DG.
-
-Variable X : Set.
-Variable Xact : X -> G -> X.
-Let XG := mkGset X Xact.
-Hypothesis X_is_Gset : IsGset XG.
-Let Xd := domainG XG.
+Variable D X : Gset.
+Hypothesis D_is_Gset : IsGset D.
+Hypothesis X_is_Gset : IsGset X.
+Let Dd := domainG D.
+Let Xd := domainG X.
 
 Definition IsSupport (x : Xd) (C : Ensemble Dd) :=
   forall pi : G,
