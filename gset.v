@@ -346,6 +346,11 @@ Definition IsSupport (x : Xd) (C : Ensemble Dd) :=
   (forall c : Dd, In _ C c -> action c pi = c) ->
   action x pi = x.
 
+Definition IsMinimumSupport (x : Xd) (C : Ensemble Dd) :=
+  IsSupport x C /\
+  forall C' : Ensemble Dd,
+    IsSupport x C' -> Included _ C C'.
+
 Lemma larger_support :
   forall (x : Xd) (C C' : Ensemble Dd),
   IsSupport x C -> Included _ C C' -> IsSupport x C'.
@@ -360,6 +365,86 @@ Proof.
   apply (H' c).
   apply (HC' c).
   assumption.
+Qed.
+
+Lemma support_pi_is_support :
+  forall (x : Xd) (C : Ensemble Dd) (pi : G),
+  IsSupport x C -> IsSupport (action x pi) (ensembleAct _ C pi).
+Proof.
+  intros x C pi HC.
+  unfold IsSupport.
+  unfold IsSupport in HC.
+  intros sigma Hc.
+  destruct (group_inverse _ G_is_group pi) as [pinv [Hpinv1 Hpinv2]].
+  assert (HC' := HC (comp (comp pi sigma) pinv)).
+  rewrite (Gset_comp _ _ _ X_is_Gset) in HC'.
+  rewrite (Gset_comp _ _ _ X_is_Gset) in HC'.
+  apply-> (transpose_inverse _ X_is_Gset _ _ Hpinv1 Hpinv2).
+  apply HC'.
+  clear HC HC'.
+  intros c HCc.
+  rewrite (Gset_comp _ _ _ D_is_Gset).
+  rewrite (Gset_comp _ _ _ D_is_Gset).
+  apply<- (transpose_inverse _ D_is_Gset _ _ Hpinv1 Hpinv2).
+  apply Hc.
+  now apply mkEnsembleAct.
+Qed.
+
+Lemma min_support_pi_is_min_support :
+  forall (x : Xd) (C : Ensemble Dd) (pi : G),
+  IsMinimumSupport x C -> IsMinimumSupport (action x pi) (ensembleAct _ C pi).
+Proof.
+  intros x C pi HC.
+  unfold IsMinimumSupport.
+  unfold IsMinimumSupport in HC.
+  destruct HC as [HC HCm].
+  split.
+  - (* IsSupport *)
+  now apply support_pi_is_support.
+  - (* minimality *)
+  unfold Included.
+  intros C' HC' d Hd.
+
+  (* HC' : IsSupport x (ensembleAct _ C' pinv) *)
+  destruct (group_inverse _ G_is_group pi) as [pinv [Hpinv1 Hpinv2]].
+  apply (support_pi_is_support (action x pi) _ pinv) in HC'.
+  rewrite <- (Gset_comp _ _ _ X_is_Gset) in HC'.
+  rewrite Hpinv2 in HC'.
+  rewrite (Gset_unit _ _ _ X_is_Gset) in HC'.
+
+  (* HCm' : Included _ C (ensembleAct _ C' pinv) *)
+  assert (HCm' := HCm _ HC').
+  unfold Included in HCm'.
+
+  (* Hd': In _ C d' ; Goal: In _ C' (action d' pi) *)
+  rewrite <- (Gset_unit _ _ _ D_is_Gset) in Hd.
+  rewrite <- Hpinv1 in Hd.
+  rewrite (Gset_comp _ _ _ D_is_Gset) in Hd.
+  inversion Hd as [d' Hd' EQd'].
+  rewrite <- (Gset_comp _ _ _ D_is_Gset) in EQd'.
+  rewrite Hpinv1 in EQd'.
+  rewrite (Gset_unit _ _ _ D_is_Gset) in EQd'.
+  rewrite <- EQd'.
+  clear d Hd EQd'.
+
+  (* Hd' : In _ (ensembleAct _ C' pinv) d' *)
+  apply HCm' in Hd'.
+  clear HCm'.
+
+  (* Hd : In _ C' d *)
+  rewrite <- (Gset_unit _ _ _ D_is_Gset) in Hd'.
+  rewrite <- Hpinv2 in Hd'.
+  rewrite (Gset_comp _ _ _ D_is_Gset) in Hd'.
+  inversion Hd' as [d Hd EQd].
+  rewrite <- (Gset_comp _ _ _ D_is_Gset) in EQd.
+  rewrite Hpinv2 in EQd.
+  rewrite (Gset_unit _ _ _ D_is_Gset) in EQd.
+
+  (* Goal : In _ C' d *)
+  rewrite <- EQd.
+  rewrite <- (Gset_comp _ _ _ D_is_Gset).
+  rewrite Hpinv1.
+  now rewrite (Gset_unit _ _ _ D_is_Gset).
 Qed.
 
 End Support.
