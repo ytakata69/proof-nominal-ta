@@ -367,11 +367,11 @@ Proof.
   assumption.
 Qed.
 
-Lemma support_pi_is_support :
-  forall (x : Xd) (C : Ensemble Dd) (pi : G),
+Lemma pi_preserves_support (pi : G) :
+  forall (x : Xd) (C : Ensemble Dd),
   IsSupport x C -> IsSupport (action x pi) (ensembleAct _ C pi).
 Proof.
-  intros x C pi HC.
+  intros x C HC.
   unfold IsSupport.
   unfold IsSupport in HC.
   intros sigma Hc.
@@ -390,24 +390,24 @@ Proof.
   now apply mkEnsembleAct.
 Qed.
 
-Lemma least_support_pi_is_least_support :
-  forall (x : Xd) (C : Ensemble Dd) (pi : G),
+Lemma pi_preserves_least_support (pi : G) :
+  forall (x : Xd) (C : Ensemble Dd),
   IsLeastSupport x C -> IsLeastSupport (action x pi) (ensembleAct _ C pi).
 Proof.
-  intros x C pi HC.
+  intros x C HC.
   unfold IsLeastSupport.
   unfold IsLeastSupport in HC.
   destruct HC as [HC HCm].
   split.
   - (* IsSupport *)
-  now apply support_pi_is_support.
+  now apply pi_preserves_support.
   - (* minimality *)
   unfold Included.
   intros C' HC' d Hd.
 
   (* HC' : IsSupport x (ensembleAct _ C' pinv) *)
   destruct (group_inverse _ G_is_group pi) as [pinv [Hpinv1 Hpinv2]].
-  apply (support_pi_is_support (action x pi) _ pinv) in HC'.
+  apply (pi_preserves_support pinv (action x pi)) in HC'.
   rewrite <- (Gset_comp _ _ _ X_is_Gset) in HC'.
   rewrite Hpinv2 in HC'.
   rewrite (Gset_unit _ _ _ X_is_Gset) in HC'.
