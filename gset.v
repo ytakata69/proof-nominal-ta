@@ -335,21 +335,25 @@ End EquivariantSubsets.
 
 Section Support.
 
-Variable D X : Gset.
+Variable D : Gset.
 Hypothesis D_is_Gset : IsGset D.
-Hypothesis X_is_Gset : IsGset X.
 Let Dd := domainG D.
-Let Xd := domainG X.
 
-Definition IsSupport (x : Xd) (C : Ensemble Dd) :=
+Definition IsSupport {X : Gset}
+  (x : domainG X) (C : Ensemble Dd) :=
   forall pi : G,
   (forall c : Dd, In _ C c -> action c pi = c) ->
   action x pi = x.
 
-Definition IsLeastSupport (x : Xd) (C : Ensemble Dd) :=
+Definition IsLeastSupport {X : Gset}
+  (x : domainG X) (C : Ensemble Dd) :=
   IsSupport x C /\
   forall C' : Ensemble Dd,
     IsSupport x C' -> Included _ C C'.
+
+Variable X : Gset.
+Hypothesis X_is_Gset : IsGset X.
+Let Xd := domainG X.
 
 Lemma larger_support :
   forall (x : Xd) (C C' : Ensemble Dd),
@@ -367,6 +371,7 @@ Proof.
   assumption.
 Qed.
 
+(* Same as [Bojanczyk+ 2014, Lemma 4.9] *)
 Lemma pi_preserves_support (pi : G) :
   forall (x : Xd) (C : Ensemble Dd),
   IsSupport x C -> IsSupport (action x pi) (ensembleAct _ C pi).
@@ -445,6 +450,40 @@ Proof.
   rewrite <- (Gset_comp _ _ _ D_is_Gset).
   rewrite Hpinv1.
   now rewrite (Gset_unit _ _ _ D_is_Gset).
+Qed.
+
+Variable Y : Gset.
+Hypothesis Y_is_Gset : IsGset Y.
+Let Yd := domainG Y.
+
+Variable f : Xd -> Yd.
+Hypothesis f_is_equivariant : IsEquivariant f.
+
+(* Same as [Bojanczyk+ 2014, Lemma 4.8] *)
+Lemma equivariant_f_preserves_support :
+  forall (x : Xd) (C : Ensemble Dd),
+  IsSupport x C -> IsSupport (f x) C.
+Proof.
+  intros x C HC.
+  unfold IsSupport.
+  unfold IsSupport in HC.
+  intros pi Hc.
+  apply (HC pi) in Hc.
+  rewrite <- f_is_equivariant.
+  now rewrite Hc.
+Qed.
+
+(* A corollary of the previous lemma *)
+Lemma equivariant_f_reduces_least_support :
+  forall (x : Xd) (C Cf : Ensemble Dd),
+  IsLeastSupport x C /\ IsLeastSupport (f x) Cf
+  -> Included _ Cf C.
+Proof.
+  intros x C Cf [HC HCf].
+  destruct HC as [HC HCm].
+  destruct HCf as [HCf HCfm].
+  apply HCfm.
+  now apply equivariant_f_preserves_support.
 Qed.
 
 End Support.
