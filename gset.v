@@ -346,7 +346,7 @@ Definition IsSupport (x : Xd) (C : Ensemble Dd) :=
   (forall c : Dd, In _ C c -> action c pi = c) ->
   action x pi = x.
 
-Definition IsMinimumSupport (x : Xd) (C : Ensemble Dd) :=
+Definition IsLeastSupport (x : Xd) (C : Ensemble Dd) :=
   IsSupport x C /\
   forall C' : Ensemble Dd,
     IsSupport x C' -> Included _ C C'.
@@ -390,13 +390,13 @@ Proof.
   now apply mkEnsembleAct.
 Qed.
 
-Lemma min_support_pi_is_min_support :
+Lemma least_support_pi_is_least_support :
   forall (x : Xd) (C : Ensemble Dd) (pi : G),
-  IsMinimumSupport x C -> IsMinimumSupport (action x pi) (ensembleAct _ C pi).
+  IsLeastSupport x C -> IsLeastSupport (action x pi) (ensembleAct _ C pi).
 Proof.
   intros x C pi HC.
-  unfold IsMinimumSupport.
-  unfold IsMinimumSupport in HC.
+  unfold IsLeastSupport.
+  unfold IsLeastSupport in HC.
   destruct HC as [HC HCm].
   split.
   - (* IsSupport *)
