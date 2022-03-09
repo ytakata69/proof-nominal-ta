@@ -452,6 +452,31 @@ Proof.
   now rewrite (Gset_unit _ _ _ D_is_Gset).
 Qed.
 
+(* A fact used to prove [Bojanczyk+ 2014, Lemma 4.13] *)
+Lemma support_connects_two_actions :
+  forall (x : Xd) (C : Ensemble Dd),
+    IsSupport x C ->
+  forall pi sigma : G,
+    (forall c, In _ C c -> action c pi = action c sigma)
+    -> action x pi = action x sigma.
+Proof.
+  intros x C HC.
+  intros pi sigma Hc.
+  unfold IsSupport in HC.
+  destruct (group_inverse _ G_is_group pi) as [pinv [Hpinv1 Hpinv2]].
+  assert (HC' := HC (comp sigma pinv)).
+  rewrite (Gset_comp _ _ _ X_is_Gset) in HC'.
+  symmetry.
+  apply-> (transpose_inverse _ X_is_Gset _ _ Hpinv1 Hpinv2).
+  apply HC'.
+  clear HC HC'.
+  intros c HCc.
+  rewrite (Gset_comp _ _ _ D_is_Gset).
+  apply<- (transpose_inverse _ D_is_Gset _ _ Hpinv1 Hpinv2).
+  symmetry.
+  now apply Hc.
+Qed.
+
 Variable Y : Gset.
 Hypothesis Y_is_Gset : IsGset Y.
 Let Yd := domainG Y.
