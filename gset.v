@@ -371,6 +371,22 @@ Proof.
   assumption.
 Qed.
 
+Lemma least_support_is_unique :
+  forall (x : Xd) (C C' : Ensemble Dd),
+  IsLeastSupport x C /\ IsLeastSupport x C'
+  -> C = C'.
+Proof.
+  unfold IsLeastSupport.
+  intros x C C' [[HC HCl] [HC' HC'l]].
+  apply Extensionality_Ensembles.
+  unfold Same_set.
+  split.
+  - (* Included _ C C' *)
+  now apply HCl.
+  - (* Included _ C' C *)
+  now apply HC'l.
+Qed.
+
 (* Same as [Bojanczyk+ 2014, Lemma 4.9] *)
 Lemma action_preserves_support (pi : G) :
   forall (x : Xd) (C : Ensemble Dd),
