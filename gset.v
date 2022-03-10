@@ -527,4 +527,29 @@ Proof.
   now apply equivariant_f_preserves_support.
 Qed.
 
+Hypothesis f_is_one_to_one : IsOneToOne f.
+
+Lemma equivariant_one_to_one_f_preserves_least_support :
+  forall (x : Xd) (C Cf : Ensemble Dd),
+  IsLeastSupport x C /\ IsLeastSupport (f x) Cf
+  -> C = Cf.
+Proof.
+  intros x C Cf [HC HCf].
+  apply Extensionality_Ensembles.
+  unfold Same_set.
+  split.
+  - (* Included _ C Cf *)
+  destruct HC as [HC HCm].
+  destruct HCf as [HCf HCfm].
+  apply HCm.
+  unfold IsSupport.
+  intros pi Hc.
+  unfold IsSupport in HCf.
+  apply f_is_one_to_one.
+  rewrite f_is_equivariant.
+  now apply HCf.
+  - (* Included _ Cf C *)
+  now apply (equivariant_f_reduces_least_support x).
+Qed.
+
 End Support.
