@@ -452,7 +452,7 @@ Proof.
   now rewrite (Gset_unit _ _ _ D_is_Gset).
 Qed.
 
-(* A fact used to prove [Bojanczyk+ 2014, Lemma 4.13] *)
+(* A fact used for proving [Bojanczyk+ 2014, Lemma 4.13] *)
 Lemma support_connects_two_actions :
   forall (x : Xd) (C : Ensemble Dd),
     IsSupport x C ->
