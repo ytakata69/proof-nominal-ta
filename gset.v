@@ -494,6 +494,58 @@ Proof.
   now apply Hc.
 Qed.
 
+Lemma orbit_preserves_least_support :
+  forall (x y : Xd) (C C' : Ensemble Dd),
+  orbit x y ->
+  IsLeastSupport x C /\ IsLeastSupport y C' ->
+  exists f : Dd -> Dd,
+  (forall c, In _ C c -> In _ C' (f c)) /\
+  (forall d, In _ C' d -> exists c, In _ C c /\ f c = d) /\
+  (forall c1 c2, In _ C c1 /\ In _ C c2 -> f c1 = f c2 -> c1 = c2).
+Proof.
+  intros x y C C'.
+  unfold orbit.
+  intros [pi Ho] [Hsx Hsy].
+  exists (fun a => action a pi).
+  destruct (group_inverse _ G_is_group pi) as [pinv [Hpinv1 Hpinv2]].
+  split; [| split].
+  - (* f's range is in C' *)
+  intros c Hc.
+  apply (action_preserves_least_support pi x) in Hsx.
+  rewrite Ho in Hsx.
+  assert (HC': C' = ensembleAct D C pi).
+  { apply (least_support_is_unique y). split; assumption. }
+  rewrite HC'.
+  now apply mkEnsembleAct.
+  - (* f is onto *)
+  intros d Hd.
+  exists (action d pinv).
+  split.
+  + (* In _ C (action d pinv) *)
+  apply (action_preserves_least_support pinv y) in Hsy.
+  symmetry in Ho.
+  apply (transpose_inverse _ X_is_Gset _ _ Hpinv1 Hpinv2) in Ho.
+  rewrite Ho in Hsy.
+  assert (HC: C = ensembleAct D C' pinv).
+  { apply (least_support_is_unique x). split; assumption. }
+  rewrite HC.
+  now apply mkEnsembleAct.
+  + (* action (action d pinv) pi = d *)
+  rewrite<- (Gset_comp _ _ _ D_is_Gset).
+  rewrite Hpinv1.
+  now rewrite (Gset_unit _ _ _ D_is_Gset).
+  - (* f is one-to-one *)
+  intros c1 c2 [Hc1 Hc2] Hcp.
+  assert (Hcpi : action (action c1 pi) pinv = action (action c2 pi) pinv).
+  { rewrite Hcp. reflexivity. }
+  rewrite<- (Gset_comp _ _ _ D_is_Gset) in Hcpi.
+  rewrite<- (Gset_comp _ _ _ D_is_Gset) in Hcpi.
+  rewrite Hpinv2 in Hcpi.
+  rewrite (Gset_unit _ _ _ D_is_Gset) in Hcpi.
+  rewrite (Gset_unit _ _ _ D_is_Gset) in Hcpi.
+  assumption.
+Qed.
+
 Variable Y : Gset.
 Hypothesis Y_is_Gset : IsGset Y.
 Let Yd := domainG Y.
