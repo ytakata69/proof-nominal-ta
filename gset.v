@@ -24,22 +24,23 @@ Axiom G_is_group : IsGroup GMag.
 
 (* G-set *)
 
-Class GroupSet (GM : Magma) `(IsGroup GM) := mkGroupSet {
+Class SetWithAction (GM : Magma) `(IsGroup GM) := mkSetWithAction {
   domain : Type;
   action : domain -> carrier -> domain;
   orbit x y := exists pi : carrier, action x pi = y;
 }.
 
-Record IsGroupSet (GM : Magma) `(HG : IsGroup GM) (A : GroupSet GM HG) := {
+Record IsSetWithAction (GM : Magma) `(HG : IsGroup GM)
+                       (A : SetWithAction GM HG) := {
   Gset_unit : forall x, action x unit = x;
   Gset_comp :
     forall (x : domain) (pi sigma : carrier),
       action x (op pi sigma) = action (action x pi) sigma;
 }.
 
-Definition Gset := GroupSet GMag G_is_group.
-Definition mkGset := mkGroupSet GMag G_is_group.
-Definition IsGset := IsGroupSet GMag G_is_group.
+Definition Gset := SetWithAction GMag G_is_group.
+Definition mkGset := mkSetWithAction GMag G_is_group.
+Definition IsGset := IsSetWithAction GMag G_is_group.
 Definition domainG := @domain GMag G_is_group.
 Definition actionG := @action GMag G_is_group.
 
