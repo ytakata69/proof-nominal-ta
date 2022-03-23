@@ -494,42 +494,52 @@ Proof.
   now apply Hc.
 Qed.
 
+Definition IsPartialFunc {Dom Codom : Type}
+  (A : Ensemble Dom) (B : Ensemble Codom) (f : Dom -> Codom) :=
+  forall x, In _ A x -> In _ B (f x).
+Definition IsPartialOnto {Dom Codom : Type}
+  (A : Ensemble Dom) (B : Ensemble Codom) (f : Dom -> Codom) :=
+  forall z, In _ B z -> exists x, In _ A x /\ f x = z.
+Definition IsPartialOneToOne {Dom Codom : Type}
+  (A : Ensemble Dom) (B : Ensemble Codom) (f : Dom -> Codom) :=
+  forall x y, In _ A x /\ In _ A y -> f x = f y -> x = y.
+
 Lemma orbit_preserves_least_support :
   forall (x y : Xd) (C C' : Ensemble Dd),
-  orbit x y ->
-  IsLeastSupport x C /\ IsLeastSupport y C' ->
+    orbit x y ->
+    IsLeastSupport x C /\ IsLeastSupport y C' ->
   exists f : Dd -> Dd,
-  (forall c, In _ C c -> In _ C' (f c)) /\
-  (forall d, In _ C' d -> exists c, In _ C c /\ f c = d) /\
-  (forall c1 c2, In _ C c1 /\ In _ C c2 -> f c1 = f c2 -> c1 = c2).
+    IsPartialFunc C C' f /\
+    IsPartialOnto C C' f /\
+    IsPartialOneToOne C C' f.
 Proof.
   intros x y C C'.
   unfold orbit.
   intros [pi Ho] [Hsx Hsy].
-  exists (fun a => action a pi).
   destruct (group_inverse _ G_is_group pi) as [pinv [Hpinv1 Hpinv2]].
-  split; [| split].
-  - (* f's range is in C' *)
-  intros c Hc.
   apply (action_preserves_least_support pi x) in Hsx.
   rewrite Ho in Hsx.
-  assert (HC': C' = ensembleAct D C pi).
+  assert (EqC': C' = ensembleAct D C pi).
   { apply (least_support_is_unique y). split; assumption. }
-  rewrite HC'.
+
+  exists (fun a => action a pi).
+  split; [| split].
+  - (* f's range is in C' *)
+  unfold IsPartialFunc.
+  intros c Hc.
+  rewrite EqC'.
   now apply mkEnsembleAct.
   - (* f is onto *)
+  unfold IsPartialOnto.
   intros d Hd.
   exists (action d pinv).
   split.
   + (* In _ C (action d pinv) *)
-  apply (action_preserves_least_support pinv y) in Hsy.
-  symmetry in Ho.
-  apply (transpose_inverse _ X_is_Gset _ _ Hpinv1 Hpinv2) in Ho.
-  rewrite Ho in Hsy.
-  assert (HC: C = ensembleAct D C' pinv).
-  { apply (least_support_is_unique x). split; assumption. }
-  rewrite HC.
-  now apply mkEnsembleAct.
+  rewrite EqC' in Hd.
+  inversion Hd as [d' Hd' EQd'].
+  rewrite<- (Gset_comp _ _ _ D_is_Gset).
+  rewrite Hpinv2.
+  now rewrite (Gset_unit _ _ _ D_is_Gset).
   + (* action (action d pinv) pi = d *)
   rewrite<- (Gset_comp _ _ _ D_is_Gset).
   rewrite Hpinv1.
