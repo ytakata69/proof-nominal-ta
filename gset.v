@@ -203,7 +203,7 @@ Let Ad := domainG A.
 
 Let EnAd := Ensemble Ad.
 Inductive ensembleAct (S : EnAd) (pi : G) : EnAd :=
-| mkEnsembleAct :
+| ensembleAct_intro :
   forall a : Ad,
   In _ S a -> In _ (ensembleAct S pi) (action a pi).
 
@@ -223,7 +223,7 @@ Proof.
   - (* Included _ S (ensembleAct S e) *)
   intros a Ha.
   rewrite <- (Gset_unit _ _ _ A_is_Gset).
-  now apply mkEnsembleAct.
+  now apply ensembleAct_intro.
 Qed.
 
 Local Lemma Ensemble_comp :
@@ -237,14 +237,14 @@ Proof.
   intros a Ha.
   inversion Ha as [a' Ha' EQa'].
   rewrite (Gset_comp _ _ _ A_is_Gset).
-  apply mkEnsembleAct.
-  now apply mkEnsembleAct.
+  apply ensembleAct_intro.
+  now apply ensembleAct_intro.
   - (* Included _ (action (action S pi) sigma) (action S (comp pi sigma)) *)
   intros a Ha.
   inversion Ha as [a' Ha' EQa'].
   inversion Ha' as [a'' Ha'' EQa''].
   rewrite <- (Gset_comp _ _ _ A_is_Gset).
-  now apply mkEnsembleAct.
+  now apply ensembleAct_intro.
 Qed.
 
 Lemma Ensemble_is_Gset : IsGset EnsembleA.
@@ -304,7 +304,7 @@ Definition IsEquivariantSubset {U : Gset} (Y : Ensemble (domainG U)) :=
 
 Inductive Product {A B : Type} (S : Ensemble A) (T : Ensemble B)
   : Ensemble (A * B) :=
-  | mkProduct : forall (a : A) (b : B),
+  | Product_intro : forall (a : A) (b : B),
     In _ S a -> In _ T b -> In _ (Product S T) (a, b).
 
 Variable X A : Gset.
@@ -327,7 +327,7 @@ Proof.
   intros yb pi Hin.
   inversion Hin as [y b Hy Hb EQyb].
   simpl.
-  apply mkProduct; auto.
+  apply Product_intro; auto.
 Qed.
 
 End EquivariantSubsets.
@@ -409,7 +409,7 @@ Proof.
   rewrite (Gset_comp _ _ _ D_is_Gset).
   apply<- (transpose_inverse _ D_is_Gset _ _ Hpinv1 Hpinv2).
   apply Hc.
-  now apply mkEnsembleAct.
+  now apply ensembleAct_intro.
 Qed.
 
 Lemma action_preserves_least_support (pi : G) :
@@ -528,7 +528,7 @@ Proof.
   unfold IsPartialFunc.
   intros c Hc.
   rewrite EqC'.
-  now apply mkEnsembleAct.
+  now apply ensembleAct_intro.
   - (* f is onto *)
   unfold IsPartialOnto.
   intros d Hd.

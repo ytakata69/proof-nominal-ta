@@ -73,7 +73,7 @@ Let TAd := domainG TreeA.
 
 Inductive Next (S : Ensemble TAd)
   : Ensemble TAd :=
-  | mkNext : forall (t1 t2 : TAd) (a : Ad),
+  | next_intro : forall (t1 t2 : TAd) (a : Ad),
     In _ S t1 -> In _ S t2 -> In _ (Next S) (tree _ a t1 t2).
 
 Variable S : Ensemble TAd.
@@ -87,7 +87,7 @@ Proof.
   simpl.
   inversion Ht as [t1 t2 a Ht1 Ht2 EQt].
   simpl.
-  apply mkNext;
+  apply next_intro;
   now apply S_is_equivariant.
 Qed.
 
@@ -111,7 +111,7 @@ Hypothesis L_is_equivariant : IsEquivariantSubset L.
 Let ETA := mkGset (Ensemble TAd) (ensembleAct TreeA).
 Let ETAd := domainG ETA.
 Inductive row (s : TAd) : ETAd :=
-| mkRow : forall a : TAd,
+| row_intro : forall a : TAd,
   In _ L (a, s) -> In _ (row s) a.
 
 Lemma row_is_equivariant :
@@ -131,9 +131,9 @@ Proof.
   rewrite <- (Gset_unit _ _ _ TA_is_Gset t').
   rewrite <- Hpinv1.
   rewrite (Gset_comp _ _ _ TA_is_Gset).
-  apply mkEnsembleAct.
+  apply ensembleAct_intro.
   (* In _ L (action t' pinv, t) *)
-  apply mkRow.
+  apply row_intro.
 
   (* Rewrite Ht' to In _ L (t', action t pi) *)
   generalize (refl_equal (treeAct t pi)).
@@ -152,7 +152,7 @@ Proof.
   - (* Included _ (action (row t) pi) (row (action t pi)) *)
   intros t' Ht'.
   inversion Ht' as [a Ha EQa]; clear EQa t' Ht'.
-  apply mkRow.
+  apply row_intro.
 
   (* Rewrite Ha to In _ L (a, t) *)
   generalize (refl_equal (action a pi)).
