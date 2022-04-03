@@ -1,5 +1,5 @@
-targets = tree.vo
-srcs = gset.v tree.v
+targets = tree.vo onetoone.vo
+srcs = gset.v tree.v onetoone.v
 docdir = ./docs
 vobjs = $(srcs:.v=.vo)
 
@@ -10,7 +10,7 @@ vobjs = $(srcs:.v=.vo)
 default: $(targets)
 all: $(targets)
 
-tree.vo: gset.vo
+tree.vo onetoone.vo: gset.vo
 
 doc: $(vobjs)
 	test -d $(docdir) || mkdir $(docdir)
